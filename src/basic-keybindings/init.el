@@ -9,6 +9,8 @@
 (global-set-key (kbd "M-à") 'shrink-window-horizontally)
 (global-set-key (kbd "M-)") 'enlarge-window-horizontally)
 
+(global-set-key (kbd "C-c b") 'pop-tag-mark)
+
 (global-set-key (kbd "C-x DEL") 'ignore)
 (global-set-key [C-backspace] 'delete-backward-char)
 

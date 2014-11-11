@@ -17,3 +17,4 @@
 (add-hook 'makefile-mode-hook 'my-ac-setup-makefile)
 (add-hook 'auto-complete-mode-hook 'ac-common-setup)
 (global-auto-complete-mode t)
+(global-set-key (kbd "M-SPC") 'ac-complete)

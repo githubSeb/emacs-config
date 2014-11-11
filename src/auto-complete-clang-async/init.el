@@ -42,3 +42,4 @@
   )
 
 (add-hook 'c-mode-common-hook 'ac-cc-mode-setup)
+(global-set-key (kbd "M-p") 'ac-clang-syntax-check)

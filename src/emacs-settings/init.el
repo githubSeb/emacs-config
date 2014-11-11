@@ -62,7 +62,6 @@
 
 ;; Set delete-selection-mode
 (delete-selection-mode)
-(normal-erase-is-backspace-mode 1)
 
 ;; Stop making annoying ~ files
 (setq make-backup-files nil)
