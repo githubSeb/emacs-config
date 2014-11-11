@@ -1,0 +1,8 @@
+#!/bin/bash
+
+tmp=$(echo "" | g++ -v -x c++ -E - 2>&1)
+begin=$(echo "$tmp" | grep "#include <...> search starts here:" -n | cut -d":" -f1)
+end=$(echo "$tmp" | grep "End of search list." -n | cut -d":" -f1)
+let "end=$end-1"
+let "delta=$end-$begin"
+echo "$tmp" | head -n $end | tail -n $delta > includes
