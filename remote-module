@@ -127,8 +127,13 @@ function setup() {
     do
 	remote_name=$(echo "$line" | cut -d";" -f1)
 	remote_addr=$(echo "$line" | cut -d";" -f2)
-	echo "Adding remote '$remote_name' at '$remote_addr'"
-	git remote add -f "$remote_name" "$remote_addr"
+	if git remote | grep "^$remote_name$" > /dev/null
+	then
+	    echo "Remote '$remote_name' is already setup"
+	else
+	    echo "Adding remote '$remote_name' at '$remote_addr'"
+	    git remote add -f "$remote_name" "$remote_addr"
+	fi
     done
 }
 
