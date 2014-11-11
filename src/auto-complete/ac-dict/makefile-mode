@@ -1,0 +1,11 @@
+NAME
+SRCS
+OBJS
+all
+re
+fclean
+clean
+PHONY
+CFLAGS
+LDFLAGS
+CXXFLAGS
