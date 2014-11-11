@@ -48,6 +48,8 @@ function add() {
 	if [ ! "$(ls -A "$root/$1/$2")" ]
 	then
 	    rm -df "$root/$1/$2"
+	    git add "$root/$1/$2" --all
+	    git commit -m "remote-module: Removed '$root/$1/$2'"
 	else
 	    echo "Remote '$2' of module '$1' already exists"
 	    exit 2
