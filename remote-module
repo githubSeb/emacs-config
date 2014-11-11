@@ -1,0 +1,145 @@
+#!/bin/bash
+# Author: Romain Ouabdelkader
+
+function print_usage() {
+    echo "Usage: remote-module [add <module-name> <remote-name> <remote-addr> [remote-branch]] [update <module_name> <remote-name> [remote-branch]] [setup]"
+}
+
+root="src"
+
+if [ $# -eq 0 ]
+then
+    print_usage
+    exit 1
+fi
+
+function cleanup_remote() {
+    git remote remove "$1"
+    exit 3
+}
+
+function add() {
+    if [ $# -lt 3 ] || [ $# -gt 4 ]
+    then
+	echo "add: Invalid number of arguments"
+	print_usage
+	exit 1
+    fi
+    remote_branch_name="master"
+    if [ $# -gt 3 ]
+    then
+	remote_branch_name="$4"
+    fi
+
+    if git remote | grep "^$2$" > /dev/null
+    then
+	echo "Remote '$2' already exists"
+	exit 2	
+    fi
+    
+    if [ ! -e "$root/$1" ]
+    then
+	echo "Module '$1' doesn't exist"
+	exit 2
+    fi
+
+    if [ -e "$root/$1/$2" ] && [ "$(ls -A "$root/$1/$2")" ]
+    then
+	echo "Remote '$2' of module '$1' already exists"
+	exit 2
+    fi
+
+    trap 'cleanup_remote $2' ERR
+    git remote add -f "$2" "$3"
+    git subtree add "--prefix=$root/$1/$2/" "$2" "$remote_branch_name" --squash
+    echo "$2;$3;$remote_branch_name" >> "$root/$1/remotes"
+    git add "$root/$1/remotes"
+    git commit -m "remote-module: Add '$2' remote to module '$1'"
+}
+
+function update() {
+    if [ $# -lt 2 ] || [ $# -gt 3 ]
+    then
+	echo "update: Invalid number of arguments"
+	print_usage
+	exit 1
+    fi
+    module_name=$1
+    remote_name=$2
+    git remote | grep "^$remote_name$" > /dev/null
+    if [ $? -ne 0 ]
+    then
+	echo "Remote '$remote_name' doesn't exists"
+	exit 2
+    fi
+    if [ ! -e "src/$module_name" ]
+    then
+	echo "Module '$module_name' doesn't exists"
+	exit 2
+    fi
+
+    config=$(cat "src/$module_name/remotes" | grep "^$remote_name;")
+    if [ "$config" == "" ]
+    then
+	echo "Remote '$remote_name' not found"
+	exit 1
+    fi
+    if [ $(echo "$config" | wc -l) -gt 1 ]
+    then
+	echo "Multiple remote '$remote_name' found. Config files corrupted. Please fix 'src/$module_name/remotes'"
+	exit 1
+    fi
+    if [ $# -gt 2 ]
+    then
+	remote_branch_name="$3"
+    else
+	remote_branch_name=$(echo "$config" | cut -d";" -f3)
+	echo "Remote branch not provided. Using '$remote_branch_name' branch by default."
+    fi
+
+    set -e
+    git fetch "$remote_name"
+    git subtree pull "--prefix=$root/$module_name/$remote_name" "$remote_name" "$remote_branch_name" --squash
+}
+
+function setup() {
+    if [ $# -ne 0 ]
+    then
+	echo "update: Invalid number of arguments"
+	print_usage
+	exit 1
+    fi
+    tmp=$(cat src/*/remotes)
+    if [ "$tmp" == "" ]
+    then
+	echo "No remote found"
+	exit 1
+    fi
+
+    echo "$tmp" | while read line
+    do
+	remote_name=$(echo "$line" | cut -d";" -f1)
+	remote_addr=$(echo "$line" | cut -d";" -f2)
+	echo "Adding remote '$remote_name' at '$remote_addr'"
+	git remote add -f "$remote_name" "$remote_addr"
+    done
+}
+
+case "$1" in
+    "add")
+	shift
+	add $*
+	;;
+    "update")
+	shift
+	update $*
+	;;
+    "setup")
+	shift
+	setup $*
+	;;
+    *)
+	echo "$1 is not a valid command"
+	print_usage
+	;;
+esac
