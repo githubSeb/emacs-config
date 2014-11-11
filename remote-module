@@ -43,12 +43,17 @@ function add() {
 	exit 2
     fi
 
-    if [ -e "$root/$1/$2" ] && [ "$(ls -A "$root/$1/$2")" ]
+    if [ -e "$root/$1/$2" ]
     then
-	echo "Remote '$2' of module '$1' already exists"
-	exit 2
+	if [ ! "$(ls -A "$root/$1/$2")" ]
+	then
+	    rm -df "$root/$1/$2"
+	else
+	    echo "Remote '$2' of module '$1' already exists"
+	    exit 2
+	fi
     fi
-
+	
     trap 'cleanup_remote $2' ERR
     git remote add -f "$2" "$3"
     git subtree add "--prefix=$root/$1/$2/" "$2" "$remote_branch_name" --squash
