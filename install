@@ -17,14 +17,20 @@ fi
 echo "$install_files" | while read line
 do
     module=$(echo "$line" | cut -d"/" -f2)
-    echo -n "Installing '$module'.."
+    echo "Installing '$module'.."
     cd "$(dirname $line)"
     "./install"
-    cd - > /dev/null
-    echo " done"
     if [ $? -ne 0 ]
     then
 	echo "Error while installing '$module'"
 	exit 1
     fi
+    cd - > /dev/null
 done
+
+./remote-module setup
+
+if [ $? -eq 0 ]
+then
+    echo "Done"
+fi
