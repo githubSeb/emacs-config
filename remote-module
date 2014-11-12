@@ -13,6 +13,12 @@ then
     exit 1
 fi
 
+if [ ! -d src ]
+then
+    echo "Cannot find config source"
+    exit 1
+fi
+
 function cleanup_remote() {
     git remote remove "$1"
     exit 3
