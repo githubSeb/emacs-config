@@ -1,6 +1,6 @@
 Emacs config
 ==============
 
-Install & module updater script are WIP
+Install & module updater scripts are WIP
 
 ouabde_r
