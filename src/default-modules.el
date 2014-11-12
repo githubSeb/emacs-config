@@ -2,6 +2,7 @@
 
 (conf:load-module "themes")
 (conf:load-module "emacs-settings")
+(conf:load-module "gui")
 
 (conf:load-module "auto-complete")
 (conf:load-module "auto-complete-clang-async")

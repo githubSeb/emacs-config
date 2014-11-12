@@ -24,11 +24,6 @@
 ;; desactivate yes-or-no question => replace it with y-or-n. Much faster
 (defalias 'yes-or-no-p 'y-or-n-p)
 
-;; Remove all the crap
-(menu-bar-mode -1)
-(blink-cursor-mode 0)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
 (kill-buffer "*scratch*")
 
 ;; Setup buffer name to be more clear

@@ -9,8 +9,10 @@
   "Load a file if it exists"
   (let ((full-file-name (format "%s/%s" conf:root-path file-name)))
     (if (file-exists-p full-file-name)
-	(load-file full-file-name)
-      (message (format "File %s not found" file-name)))))
+	(progn (load-file full-file-name)
+	       t)
+      (message (format "File %s not found" file-name))
+      nil)))
 
 (defun conf:load-module(module-name)
   "Load a module if it exists"
@@ -36,7 +38,7 @@
     (add-to-list load-list full-module-name)))
 
 (defun conf:require(require-list &optional no-throw)
-  "Ensure that require-list is provided. Throw 'package-not-provided if a package is not found"
+  "Ensure that require-list is provided. Throw 'load-module-exception if a package is not found"
   (let ((except-value
 	 (catch 'load-module-exception
 	   (loop for value in require-list do
@@ -47,4 +49,5 @@
     	(throw 'load-module-exception except-value))
     (not except-value)))
 
-(conf:load-file "load-modules.el")
+(if (not (conf:load-file "custom-modules.el"))
+    (conf:load-file "default-modules.el"))
