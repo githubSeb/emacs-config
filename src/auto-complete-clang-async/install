@@ -1,5 +1,18 @@
 #!/bin/bash
 
+cd auto-complete-clang-async
+make clean
+make
+
+if [ -$? -ne 0 ]
+then
+    echo
+    echo "Fatal: Clang compilation failed. You probably need to install libclang."
+    exit 1
+fi
+
+cd - > /dev/null
+
 tmp=$(echo "" | g++ -v -x c++ -E - 2>&1)
 begin=$(echo "$tmp" | grep "#include <...> search starts here:" -n | cut -d":" -f1)
 end=$(echo "$tmp" | grep "End of search list." -n | cut -d":" -f1)

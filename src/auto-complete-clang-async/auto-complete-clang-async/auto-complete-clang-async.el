@@ -32,12 +32,10 @@
 
 ;;; Code:
 
-
 (provide 'auto-complete-clang-async)
 (eval-when-compile (require' cl))
 (require 'auto-complete)
 (require 'flymake)
-
 
 (defcustom ac-clang-complete-executable
   (executable-find "clang-complete")
@@ -77,11 +75,18 @@ set new cflags for ac-clang from shell command output"
   (ac-clang-update-cmdlineargs))
 
 (defvar ac-clang-prefix-header nil
-  "The prefix header to pass to the Clang executable.")
+  "The prefix header (pch) to pass to the Clang executable.")
 (make-variable-buffer-local 'ac-clang-prefix-header)
+
+(defvar ac-clang-prefix-header-header nil
+  "The prefix header (pth) to pass to the Clang executable.")
+(make-variable-buffer-local 'ac-clang-prefix-header-header)
 
 (defvar ac-clang-async-do-autocompletion-automatically t
   "If autocompletion is automatically triggered when you type ., -> or ::")
+
+(defvar ac-clang-jump-stack nil
+  "The jump stack (keeps track of jumps via jump-declaration and jump-definition)")
 
 (defun ac-clang-set-prefix-header (prefix-header)
   "Set `ac-clang-prefix-header' interactively."
@@ -100,6 +105,21 @@ set new cflags for ac-clang from shell command output"
 
 (defconst ac-clang-completion-pattern
   "^COMPLETION: \\(%s[^\s\n:]*\\)\\(?: : \\)*\\(.*$\\)")
+
+(defun ac-clang-set-prefix-header-header (prefix-header)
+  "Set `ac-clang-prefix-header' interactively."
+  (interactive
+   (let ((default (car (directory-files "." t "\\([^.]h\\|[^h]\\).pth\\'" t))))
+     (list
+      (read-file-name (concat "Clang prefix header (currently " (or ac-clang-prefix-header "nil") "): ")
+                      (when default (file-name-directory default))
+                      default nil (when default (file-name-nondirectory default))))))
+  (cond
+   ((string-match "^[\s\t]*$" prefix-header)
+    (setq ac-clang-prefix-header-header nil))
+   (t
+    (setq ac-clang-prefix-header-header prefix-header))))
+
 
 (defun ac-clang-parse-output (prefix)
   (goto-char (point-min))
@@ -194,7 +214,9 @@ set new cflags for ac-clang from shell command output"
           (list "-x" (ac-clang-lang-option))
           ac-clang-cflags
           (when (stringp ac-clang-prefix-header)
-            (list "-include-pch" (expand-file-name ac-clang-prefix-header)))))
+	    (list "-include-pch" (expand-file-name ac-clang-prefix-header)))
+	  (when (stringp ac-clang-prefix-header-header)
+	    (list "-include-pth" (expand-file-name ac-clang-prefix-header-header)))))
 
 
 (defsubst ac-clang-clean-document (s)
@@ -230,6 +252,96 @@ set new cflags for ac-clang from shell command output"
 (defvar ac-clang-template-start-point nil)
 (defvar ac-clang-template-candidates (list "ok" "no" "yes:)"))
 
+(defvar ac-clang-ignore-c++-template-optional-args t
+  "If value is non-nil, optional args of C++ template will be ignored.")
+
+(defsubst ac-clang-candidate-is-c++-template-p (s)
+  "If `<' appears faster than `(', it would be template."
+  ;; exclude `operator<'
+  (if  (string-match (rx (or "(" "<" "operator")) s)
+	  (string= (match-string 0 s) "<")
+	nil)
+  )
+
+(defsubst ac-clang-expand-c++-template (s)
+  "Format and expand c++ template."
+  (print s)
+  (print "------")
+  (print (replace-regexp-in-string ";.*" "" s))
+  (print "------")
+  (string-match (rx bol (submatch (*? nonl))
+					"<" (submatch  (not (any "#")) (* nonl) (not (any "#"))) ">")
+				s)
+  (let ((template-name (match-string 1 s))
+		(template-args (match-string 2 s))
+		template-fn-args)
+
+	;;process template optional args
+	(if ac-clang-ignore-c++-template-optional-args
+		(setq template-args (replace-regexp-in-string "\{#.*#\}" "" template-args))
+	  (progn
+		(setq template-args (replace-regexp-in-string "\{#" "" template-args))
+		(setq template-args (replace-regexp-in-string "#\}" "" template-args))
+		))
+	
+	;;format template-args to yas style
+	(setq template-args
+		  (mapconcat
+		   (lambda (arg)
+			 (setq arg (replace-regexp-in-string "<#" "${" arg))
+			 (setq arg (replace-regexp-in-string "#>" "}" arg))
+			 )
+		   (split-string template-args ", ")
+		   ", "))
+	
+	;; when template function
+	(when (string-match (rx bol (submatch (*? nonl))
+							"<" (submatch  (not (any "#")) (* nonl) (not (any "#"))) ">"
+							"(" (submatch (* nonl)) ")") s)
+	  (setq template-fn-args (match-string 3 s))
+
+	  
+	  ;; remove optional args
+	  (setq template-fn-args (replace-regexp-in-string "\{#.*#\}" "" template-fn-args))
+
+	  ;; format template-fn-args to yas style
+	  (setq template-fn-args
+			(mapconcat
+			 (lambda (arg)
+			   (setq arg (replace-regexp-in-string (rx "<#") "${" arg))
+			   (setq arg (replace-regexp-in-string (rx "#>") "}" arg))
+			   )
+			 (split-string template-fn-args ", ")
+			 ", ")))
+
+	;; ;;debug
+	;; (message "name%s" template-name)
+	;; (message "args%s" template-args)
+	;; (message "fn: %s" template-fn-args)
+	
+	(let ((snp
+		   (if template-fn-args
+			   (concat "<" template-args ">" "(" template-fn-args ")")
+			 (concat "<" template-args ">"))))
+	  
+	  (replace-regexp-in-string ", \\.\\.\\." "}, ${..." snp)
+	  (cond
+	   ((featurep 'yasnippet)
+	  	(yas-expand-snippet snp))
+
+	   ((featurep 'snippet)
+	  	(replace-regexp-in-string "$" "$$" snp)
+	  	(snippet-insert snp)
+	  	)
+	   (t
+	  	(message "Dude! You are too out! Please install a yasnippet or a snippet script:)")
+	  	))
+	  
+	  )
+	;;	(return)
+	))
+
+
 (defun ac-clang-action ()
   (interactive)
   ;; (ac-last-quick-help)
@@ -241,14 +353,29 @@ set new cflags for ac-clang from shell command output"
       (when (string-match "\\[#\\(.*\\)#\\]" s)
         (setq ret-t (match-string 1 s)))
       (setq s (replace-regexp-in-string "\\[#.*?#\\]" "" s))
-      (cond ((string-match "^\\([^(<]*\\)\\(:.*\\)" s)
-             (setq fn (match-string 1 s)
+      ;(setq s (replace-regexp-in-string "^[a-zA-Z_]*::" "" s))   ;  AZKAE - HERE IS THE FIX TO THE INHERITED METHOD ISSUE
+;      (cond ((string-match "^\\([^(<]*\\)\\(:.*\\)" s)
+      (cond ((and (eq major-mode 'objc-mode)
+		  (string-match "^\\([^(<]*\\)\\(:.*\\)" s))
+	     (setq fn (match-string 1 s)
                    args (match-string 2 s))
              (push (propertize (ac-clang-clean-document args) 'ac-clang-help ret-t
                                'raw-args args) candidates))
-            ((string-match "^\\([^(]*\\)\\((.*)\\)" s)
+	          			;;c++ template
+			      ;; ((ac-clang-candidate-is-c++-template-p s)
+			      ;; (push s candidates)
+			      ;; )
+			      ;; \c++ template
+
+	                ;; ((string-match "^\\([^(]*\\)\\((.*)\\)" s) ; AZKAE- was like that (for template)
+            ((string-match "^\\([^(<]*\\)\\(\\(<<.*>[^(]*>\\)?\\((.*)\\)?\\)" s) ; NEED TO MAKE sf::RenderWindow pass this regex <--------------------------
+            ;((equal "" "")
+	     ;(message "aeaj%s." raw-help)
+	     ;(sit-for 5)
              (setq fn (match-string 1 s)
                    args (match-string 2 s))
+	     ;; (message "S=%s|FN=%s|ARGS=%s" s fn args)
+;	     (sit-for 5)
              (push (propertize (ac-clang-clean-document args) 'ac-clang-help ret-t
                                'raw-args args) candidates)
              (when (string-match "\{#" args)
@@ -265,18 +392,42 @@ set new cflags for ac-clang from shell command output"
              (push (propertize args 'ac-clang-help ret-f 'raw-args "") candidates)
              (when (string-match ", \\.\\.\\." args)
                (setq args (replace-regexp-in-string ", \\.\\.\\." "" args))
-               (push (propertize args 'ac-clang-help ret-f 'raw-args "") candidates)))))
-    (cond (candidates
+               (push (propertize args 'ac-clang-help ret-f 'raw-args "") candidates)))
+
+	    ; AZKAE FIX - CONTRUCTORS
+	    (t
+	     ;; Most likely this is a type with no arguments. We still need to
+	     ;; add something to the candidate list. Otherwise, there is no way
+	     ;; for the user to complete just a C++ class name, because
+	     ;; completion will try to expand to a call to the class's
+	     ;; constructor.
+	     ;(message "HERE??%s." s)
+	     ;(sit-for 5)
+	     (if (equal s "")
+		 ;(message "PUSHED")
+	       ;(sit-for 5)
+	     (push s candidates)))))
+
+;    (message "AZEIOH %s." (car candidates))
+;    (sit-for 5)
+    
+    (if (not (equal (car candidates) "")) ; AZKAE FIX ; #define and type used to move to next arg in snippets
+	(cond (candidates
+	   ;(message "TRYING %s" (car candidates))
+	   ;(sit-for 2)
+	  ;     (message "STEP IN %s" (car candidates))
            (setq candidates (delete-dups candidates))
            (setq candidates (nreverse candidates))
            (setq ac-clang-template-candidates candidates)
            (setq ac-clang-template-start-point (point))
+	   ;(message "AZEAZ %s." (car candidates))
+	   ;(sit-for 5)
            (ac-complete-clang-template)
 
            (unless (cdr candidates) ;; unless length > 1
              (message (replace-regexp-in-string "\n" "   ;    " help))))
           (t
-           (message (replace-regexp-in-string "\n" "   ;    " help))))))
+           (message (replace-regexp-in-string "\n" "   ;    " help)))))))
 
 (defun ac-clang-prefix ()
   (or (ac-prefix-symbol)
@@ -338,13 +489,18 @@ set new cflags for ac-clang from shell command output"
                     (dolist (arg sl)
                       (setq snp (concat snp ", ${" arg "}")))
                     (condition-case nil
-                        (yas/expand-snippet (concat "("  (substring snp 2) ")")
+                        (yas-expand-snippet (concat "("  (substring snp 2) ")")
                                             ac-clang-template-start-point pos) ;; 0.6.1c
+;                        (yas/expand-snippet (concat "("  (substring snp 2) ")")
+;                                            ac-clang-template-start-point pos) ;; 0.6.1c
                       (error
                        ;; try this one:
-                       (ignore-errors (yas/expand-snippet
+                       (ignore-errors (yas-expand-snippet
                                        ac-clang-template-start-point pos
                                        (concat "("  (substring snp 2) ")"))) ;; work in 0.5.7
+;                       (ignore-errors (yas/expand-snippet
+;                                       ac-clang-template-start-point pos
+;                                       (concat "("  (substring snp 2) ")"))) ;; work in 0.5.7
                        )))
                    ((featurep 'snippet)
                     (delete-region ac-clang-template-start-point pos)
@@ -362,10 +518,12 @@ set new cflags for ac-clang from shell command output"
                       (setq s (replace-regexp-in-string "#>" "}" s))
                       (setq s (replace-regexp-in-string ", \\.\\.\\." "}, ${..." s))
                       (condition-case nil
-                          (yas/expand-snippet s ac-clang-template-start-point pos) ;; 0.6.1c
+			  (yas-expand-snippet s ac-clang-template-start-point pos) ;; 0.6.1c
+                          ;(yas/expand-snippet s ac-clang-template-start-point pos) ;; 0.6.1c
                         (error
                          ;; try this one:
-                         (ignore-errors (yas/expand-snippet ac-clang-template-start-point pos s)) ;; work in 0.5.7
+                         ;(ignore-errors (yas/expand-snippet ac-clang-template-start-point pos s)) ;; work in 0.5.7
+                         (ignore-errors (yas-expand-snippet ac-clang-template-start-point pos s)) ;; work in 0.5.7
                          )))
                      ((featurep 'snippet)
                       (delete-region ac-clang-template-start-point pos)
@@ -435,6 +593,28 @@ set new cflags for ac-clang from shell command output"
     (process-send-string proc (ac-clang-create-position-string (- (point) (length ac-prefix))))
     (ac-clang-send-source-code proc)))
 
+(defun ac-clang-send-declaration-request (proc)
+  (save-restriction
+    (widen)
+    (process-send-string proc "DECLARATION\n")
+    (process-send-string proc (ac-clang-create-position-string (- (point) (length ac-prefix))))
+    (ac-clang-send-source-code proc)))
+
+(defun ac-clang-send-definition-request (proc)
+  (save-restriction
+    (widen)
+    (process-send-string proc "DEFINITION\n")
+    (process-send-string proc (ac-clang-create-position-string (- (point) (length ac-prefix))))
+    (ac-clang-send-source-code proc)))
+
+(defun ac-clang-send-smart-jump-request (proc)
+  (save-restriction
+    (widen)
+    (process-send-string proc "SMARTJUMP\n")
+    (process-send-string proc (ac-clang-create-position-string (- (point) (length ac-prefix))))
+    (ac-clang-send-source-code proc)))
+
+
 (defun ac-clang-send-syntaxcheck-request (proc)
   (save-restriction
     (widen)
@@ -496,6 +676,7 @@ set new cflags for ac-clang from shell command output"
         (otherwise
          (setq ac-clang-current-candidate (ac-clang-parse-completion-results proc))
          ;; (message "ac-clang results arrived")
+         ; (message "ac-clang results arrived")
          (setq ac-clang-status 'acknowledged)
          (ac-start :force-init t)
          (ac-update)
@@ -569,7 +750,60 @@ set new cflags for ac-clang from shell command output"
     (set-process-filter ac-clang-completion-process 'ac-clang-flymake-process-filter)
     (ac-clang-send-syntaxcheck-request ac-clang-completion-process)))
 
+(defun ac-clang-jump (location)
+  (let* ((filename (pop location))
+         (row (pop location))
+         (col (pop location)))
+    (find-file filename)
+    (goto-line row)
+    (move-to-column col)))
 
+(defun ac-clang-jump-back ()
+  (interactive)
+  (when ac-clang-jump-stack
+    (ac-clang-jump (pop ac-clang-jump-stack))))
+
+(defun ac-clang-jump-declaration ()
+  (interactive)
+  (when (eq ac-clang-status 'idle)
+    (with-current-buffer (process-buffer ac-clang-completion-process)
+      (erase-buffer))
+    (setq ac-clang-status 'wait)
+    (set-process-filter ac-clang-completion-process 'ac-clang-jump-filter)
+    (ac-clang-send-declaration-request ac-clang-completion-process)))
+
+(defun ac-clang-jump-definition ()
+  (interactive)
+  (when (eq ac-clang-status 'idle)
+    (with-current-buffer (process-buffer ac-clang-completion-process)
+      (erase-buffer))
+    (setq ac-clang-status 'wait)
+    (set-process-filter ac-clang-completion-process 'ac-clang-jump-filter)
+    (ac-clang-send-definition-request ac-clang-completion-process)))
+
+(defun ac-clang-jump-smart ()
+  (interactive)
+  (when (eq ac-clang-status 'idle)
+    (with-current-buffer (process-buffer ac-clang-completion-process)
+      (erase-buffer))
+    (setq ac-clang-status 'wait)
+    (set-process-filter ac-clang-completion-process 'ac-clang-jump-filter)
+    (ac-clang-send-smart-jump-request ac-clang-completion-process)))
+
+(defun ac-clang-jump-filter (proc string)
+  (ac-clang-append-process-output-to-process-buffer proc string)
+  (setq ac-clang-status 'idle)
+  (set-process-filter ac-clang-completion-process 'ac-clang-filter-output)
+  (when (not (string= string "$"))
+    (let* ((parsed (reverse (split-string-and-unquote string)))
+           (column (- (string-to-number (pop parsed)) 1))
+           (row (string-to-number (pop parsed)))
+           (filename (combine-and-quote-strings parsed))
+           (new-loc (list filename row column))
+           (current-loc (list (buffer-file-name) (line-number-at-pos) (current-column))))
+      (when (not (equal current-loc new-loc))
+        (push current-loc ac-clang-jump-stack)
+        (ac-clang-jump new-loc)))))
 
 (defun ac-clang-shutdown-process ()
   (if ac-clang-completion-process

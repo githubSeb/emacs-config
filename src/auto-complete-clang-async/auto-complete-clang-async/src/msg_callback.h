@@ -10,11 +10,11 @@
 void completion_AcceptRequest(completion_Session *session, FILE *fp);
 
 
-/* 
+/*
    MESSAGE HANDLERS: callback to handle recieved requests
 
    COMPLETION: Do code completion at a specified point.
-   Message format: 
+   Message format:
         row:[#row#]
         column:[#column#]
         source_length:[#src_length#]
@@ -48,6 +48,9 @@ void completion_doSourcefile(completion_Session *session, FILE *fp);   /* SOURCE
 void completion_doCmdlineArgs(completion_Session *session, FILE *fp);  /* CMDLINEARGS */
 void completion_doReparse(completion_Session *session, FILE *fp);      /* REPARSE */
 void completion_doSyntaxCheck(completion_Session *session, FILE *fp);  /* SYNTAXCHECK */
+void completion_doDeclaration(completion_Session *session, FILE *fp);  /* DECLARATION */
+void completion_doDefinition(completion_Session *session, FILE *fp);   /* DEFINITION */
+void completion_doSmartJump(completion_Session *session, FILE *fp);   /* SMARTJUMP */
 void completion_doShutdown(completion_Session *session, FILE *fp);     /* SHUTDOWN */
 
 

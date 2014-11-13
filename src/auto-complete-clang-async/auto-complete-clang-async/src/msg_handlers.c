@@ -22,8 +22,8 @@ static void __read_n_bytes(FILE *fp, char *buffer, int len)
 }
 
 
-/* Read the source file portion of the message to the source code buffer in 
-   specified session object. 
+/* Read the source file portion of the message to the source code buffer in
+   specified session object.
 
    Sourcefile segment always starts with source_length: [#len#], followed by a
    newline character, then the actual source code. Length of the source code is
@@ -39,7 +39,7 @@ static void completion_readSourcefile(completion_Session *session, FILE *fp)
     {
         /* expand the buffer two-fold of source size */
         session->buffer_capacity = source_length * 2;
-        session->src_buffer = 
+        session->src_buffer =
             (char*)realloc(session->src_buffer, session->buffer_capacity);
     }
 
@@ -48,8 +48,100 @@ static void completion_readSourcefile(completion_Session *session, FILE *fp)
     __read_n_bytes(fp, session->src_buffer, source_length);
 }
 
+void completion_prepareLookup(completion_Session *session, FILE *fp, int *row, int *column) {
+    /* get where cursor is */
+    fscanf(fp, "row:%d",    row);    __skip_the_rest(fp);
+    fscanf(fp, "column:%d", column); __skip_the_rest(fp);
 
-/* Read completion request (where to complete at and current source code) from message 
+    /* get a copy of fresh source file */
+    completion_readSourcefile(session, fp);
+
+    /* reparse the source to retrieve diagnostic message */
+    completion_reparseTranslationUnit(session);
+}
+
+int completion_doLookup(completion_Session *session, FILE *fp, CXCursor (*lookup)(CXCursor), int row, int column) {
+    int dest_row, dest_column, dest_offset;
+    CXCursor source_cursor, dest_cursor;
+    CXSourceLocation source_location, dest_location;
+    CXFile source_file, dest_file;
+    CXString dest_filename;
+
+    source_file = clang_getFile(session->cx_tu, session->src_filename);
+
+    source_location = clang_getLocation(
+        session->cx_tu, source_file, row, column);
+
+    source_cursor = clang_getCursor(session->cx_tu, source_location);
+
+    if (clang_isInvalid(source_cursor.kind)) {
+        return 0;
+    }
+
+    dest_cursor = lookup(source_cursor);
+
+    if (clang_isInvalid(dest_cursor.kind)) {
+        return 0;
+    }
+
+    dest_location = clang_getCursorLocation(dest_cursor);
+
+    clang_getExpansionLocation(
+        dest_location, &dest_file, &dest_row, &dest_column, &dest_offset);
+
+    dest_filename = clang_getFileName(dest_file);
+
+    fprintf(stdout, "%s %d %d\n",
+        clang_getCString(dest_filename), dest_row, dest_column);
+
+    return 1;
+}
+
+/* Get location of declaration of entry at current point (returns filename, row, column)
+   Message format:
+        row:[#row#]
+        column:[#column#]
+        source_length:[#src_length#]
+        <# SOURCE CODE #>
+*/
+void completion_doDeclaration(completion_Session *session, FILE *fp) {
+    int row, column;
+    completion_prepareLookup(session, fp, &row, &column);
+    completion_doLookup(session, fp, &clang_getCursorReferenced, row, column);
+    fprintf(stdout, "$"); fflush(stdout);    /* end of output */
+}
+
+/* Get location of definition of entry at current point (returns filename, row, column)
+   Message format:
+        row:[#row#]
+        column:[#column#]
+        source_length:[#src_length#]
+        <# SOURCE CODE #>
+*/
+void completion_doDefinition(completion_Session *session, FILE *fp) {
+    int row, column;
+    completion_prepareLookup(session, fp, &row, &column);
+    completion_doLookup(session, fp, &clang_getCursorDefinition, row, column);
+    fprintf(stdout, "$"); fflush(stdout);    /* end of output */
+}
+
+/* Get location of definition of entry at current point.  If that fails,
+   get location of the declaration instead.  (returns filename, row, column).
+   Message format:
+        row:[#row#]
+        column:[#column#]
+        source_length:[#src_length#]
+        <# SOURCE CODE #>
+*/
+void completion_doSmartJump(completion_Session *session, FILE *fp) {
+    int row, column;
+    completion_prepareLookup(session, fp, &row, &column);
+    if (! completion_doLookup(session, fp, &clang_getCursorDefinition, row, column))
+        completion_doLookup(session, fp, &clang_getCursorReferenced, row, column);
+    fprintf(stdout, "$"); fflush(stdout);    /* end of output */
+}
+
+/* Read completion request (where to complete at and current source code) from message
    header and calculate completion candidates.
 
    Message format:
@@ -80,8 +172,8 @@ void completion_doCompletion(completion_Session *session, FILE *fp)
 	    completion_printCodeCompletionResults(res, stdout);
         clang_disposeCodeCompleteResults(res);
     }
-    
-    fprintf(stdout, "$"); fflush(stdout);    /* we need to inform emacs that all 
+
+    fprintf(stdout, "$"); fflush(stdout);    /* we need to inform emacs that all
                                                 candidates has already been sent */
 }
 
@@ -116,7 +208,7 @@ static void completion_freeCmdlineArgs(completion_Session *session)
 
 /* Update command line arguments passing to clang translation unit. Format
    of the coming CMDLINEARGS message is as follows:
-   
+
        num_args: [#n_args#]
        arg1 arg2 ... (there should be n_args items here)
 */
@@ -143,7 +235,7 @@ void completion_doCmdlineArgs(completion_Session *session, FILE *fp)
         strcpy(session->cmdline_args[i_arg], arg);
     }
 
-    /* we have to rebuild our translation units to make these cmdline args changes 
+    /* we have to rebuild our translation units to make these cmdline args changes
        take place */
     clang_disposeTranslationUnit(session->cx_tu);
     completion_parseTranslationUnit(session);
@@ -180,7 +272,7 @@ void completion_doSyntaxCheck(completion_Session *session, FILE *fp)
     fprintf(stdout, "$"); fflush(stdout);    /* end of output */
 }
 
-/* When emacs buffer is killed, a SHUTDOWN message is sent automatically by a hook 
+/* When emacs buffer is killed, a SHUTDOWN message is sent automatically by a hook
    function to inform the completion server (this program) to terminate. */
 void completion_doShutdown(completion_Session *session, FILE *fp)
 {

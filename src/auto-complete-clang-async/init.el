@@ -1,6 +1,6 @@
 ;; Setup auto-complete-clang-async
 
-(conf:add-to-path)
+(conf:add-to-path "auto-complete-clang-async")
 (conf:require (list 'auto-complete))
 
 (require 'auto-complete-clang-async)
@@ -39,7 +39,8 @@
 		azkae-additional-cflags
 		)))
 
-(setq ac-clang-complete-executable (format "%s/%s" (file-name-directory load-file-name) "clang-complete"))
+(setq ac-clang-complete-executable (format "%s/%s" (file-name-directory load-file-name)
+					   "auto-complete-clang-async/clang-complete"))
 
 (defun ac-cc-mode-setup ()
   (project-setup)

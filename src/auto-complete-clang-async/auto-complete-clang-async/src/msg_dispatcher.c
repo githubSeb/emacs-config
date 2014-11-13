@@ -11,13 +11,16 @@ struct __command_dispatch_entry {
 };
 
 /* message dispatch table */
-struct __command_dispatch_entry 
-__command_dispatch_table[] = 
+struct __command_dispatch_entry
+__command_dispatch_table[] =
 {
     {"COMPLETION",   completion_doCompletion},
     {"SOURCEFILE",   completion_doSourcefile},
     {"CMDLINEARGS",  completion_doCmdlineArgs},
     {"SYNTAXCHECK",  completion_doSyntaxCheck},
+    {"DECLARATION",  completion_doDeclaration},
+    {"DEFINITION",   completion_doDefinition},
+    {"SMARTJUMP",    completion_doSmartJump},
     {"REPARSE",      completion_doReparse},
     {"SHUTDOWN",     completion_doShutdown}
 };
@@ -31,11 +34,11 @@ void completion_AcceptRequest(completion_Session *session, FILE *fp)
     fscanf(fp, "%s", msg_head);
 
     /* find corresponded message handler to dispatch message to */
-    for ( ; i_entry < 
+    for ( ; i_entry <
               sizeof(__command_dispatch_table)/
               sizeof(__command_dispatch_table[0]); i_entry++)
     {
-        if (strcmp(msg_head, 
+        if (strcmp(msg_head,
                 __command_dispatch_table[i_entry].command) == 0)
         {
             fgets(msg_head, sizeof(msg_head), fp); /* skip trailing '\n' */
