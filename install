@@ -28,9 +28,20 @@ do
     cd - > /dev/null
 done
 
+echo "Compiling emacs config.."
+emacs -batch -l src/compile.el -kill 2> /dev/null
 ./remote-module setup
 
 if [ $? -eq 0 ]
 then
+    echo
+    echo
+    echo "---------------------------------------------------"
     echo "Done"
+    echo "You can now add the following lines to your .emacs:"
+    echo
+    echo "(let ((config \"$(pwd)/src/init.el\"))"
+    echo "  (if (file-exists-p config)"
+    echo "      (load-file config)))"
+
 fi
