@@ -2,6 +2,9 @@
 
 (require 'cl)
 
+(defvar conf:default-directory default-directory
+  "Default directory. May be changed by modules.")
+
 (defvar conf:root-path (file-name-directory load-file-name)
   "Root path of conf directory")
 

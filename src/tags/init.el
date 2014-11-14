@@ -6,7 +6,7 @@
 (defun create-tags (dir-name)
   "Create tags file."
   (interactive (list (read-directory-name "TAGS directory: "
-					  azkae-default-directory)))
+					  conf:default-directory)))
   (setq azkae-default-directory dir-name)
   (shell-command
    (format "cd %s && find %s -type f -regex \".*\\.\\(hh\\|cpp\\|c\\|cc\\|hpp\\|h\\|py\\)\" | etags - && cd -" dir-name dir-name))
