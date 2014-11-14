@@ -1,0 +1,12 @@
+# name: get/set
+# key: getset
+# --
+${2:Type} ${1:Class}::get${3:Name} const
+{
+   return $3;
+}
+
+void $1::set$3($2 value_set)
+{
+   $3 = value_set;
+}

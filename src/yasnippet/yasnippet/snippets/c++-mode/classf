@@ -1,0 +1,49 @@
+# name: classf ... { ... }
+# key: classf
+# --
+class ${1:Name}
+{
+public:
+  $1();
+  $1(const $1 &);
+  $1($1 &&);
+  virtual	~$1();
+  $1		&operator=(const $1 &);
+  $1		&operator=($1 &&);
+  friend void	swap($1 &, $1 &);
+};
+
+$1::$1()
+{}
+
+$1::~$1()
+{}
+
+$1::$1(const $1 &other) : $1()
+{}
+
+void swap($1 &first, $1 &second)
+{}
+
+$1::$1($1 &&other)
+{
+  swap(*this, other);
+}
+
+$1 &$1::operator=(const $1 &other)
+{
+  if (this != &other)
+    {
+      $1 tmp(other);
+
+      swap(*this, tmp);
+    }
+  return *this;
+}
+
+$1 &$1::operator=($1 &&other)
+{
+  if (this != &other)
+    swap(*this, other);
+  return *this;
+}

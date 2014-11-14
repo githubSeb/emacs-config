@@ -1,6 +1,5 @@
-# -*- mode: snippet -*-
-#Author : Anders Bach Nielsen <andersbach.nielsen@epfl.ch>
-#name : trait T extends C { .. }
+# Author: Anders Bach Nielsen <andersbach.nielsen@epfl.ch>
+# name: trait T extends C { .. }
 # key: tr
 # --
 trait ${1:name} extends ${2:class} {

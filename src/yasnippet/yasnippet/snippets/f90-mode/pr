@@ -1,11 +1,7 @@
-# -*- mode: snippet -*-
-# contributor: Jonas Kalderstam <jonas@kalderstam.se>
+# contributor: Li Zhu <http://www.zhuli.name>
 # name: program ... end program ...
 # key: pr
 # --
 program ${1:name}
-  ${2:implicit none}
-
   $0
-
-end program $1
+end program ${1:name}

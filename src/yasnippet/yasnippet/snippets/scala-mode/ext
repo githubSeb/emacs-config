@@ -1,6 +1,5 @@
-# -*- mode: snippet -*-
-#Author : Jonas Bonèr <jonas@jonasboner.com>
-#name : extends T
+# Author: Jonas Bonèr <jonas@jonasboner.com>
+# name: extends T
 # key: ext
 # --
 extends $0

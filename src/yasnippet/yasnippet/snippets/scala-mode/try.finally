@@ -1,6 +1,5 @@
-# -*- mode: snippet -*-
-#Author : Jonas Bonèr <jonas@jonasboner.com>
-#name : try { .. } finally { .. }
+# Author: Jonas Bonèr <jonas@jonasboner.com>
+# name: try { .. } finally { .. }
 # key: try
 # --
 try {
