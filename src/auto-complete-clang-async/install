@@ -7,7 +7,7 @@ make
 if [ -$? -ne 0 ]
 then
     echo
-    echo "Fatal: Clang compilation failed. You probably need to install libclang."
+    echo "Fatal: clang-complete compilation failed. You probably need to install libclang."
     exit 1
 fi
 
