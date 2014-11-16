@@ -14,7 +14,7 @@ then
     exit
 fi
 
-echo "$install_files" | while read line
+for line in $install_files
 do
     module=$(echo "$line" | cut -d"/" -f2)
     echo "Installing '$module'.."
@@ -27,11 +27,6 @@ do
     fi
     cd - > /dev/null
 done
-
-if [ $? -ne 0 ]
-then
-    exit 1
-fi
 
 if [ ! -e src/custom-modules.el ]
 then
