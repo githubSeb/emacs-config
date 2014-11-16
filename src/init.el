@@ -1,6 +1,7 @@
 ;; Conf startup file
 
-(require 'cl)
+(eval-when-compile
+  (require 'cl))
 
 (defvar conf:default-directory default-directory
   "Default directory. May be changed by modules.")
