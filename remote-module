@@ -129,7 +129,7 @@ function setup() {
 	exit 1
     fi
 
-    echo "$tmp" | while read line
+    for line in $tmp
     do
 	remote_name=$(echo "$line" | cut -d";" -f1)
 	remote_addr=$(echo "$line" | cut -d";" -f2)
