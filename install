@@ -34,7 +34,7 @@ then
     cp src/default-modules.el src/custom-modules.el
 fi
 echo "Compiling emacs config.."
-emacs -batch -l src/compile.el -kill 2> /dev/null
+emacs -batch -l src/compile.el -kill |& tail -n 1
 ./remote-module setup
 
 if [ $? -eq 0 ]
