@@ -1,1 +1,12 @@
 template
+noexcept
+alignof
+alignas
+constexpr
+decltype
+noexcept
+nullptr
+static_assert
+thread_local
+override
+final
