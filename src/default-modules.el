@@ -6,6 +6,7 @@
 (conf:load-module "auto-complete-clang-async")
 (conf:load-module "autopair")
 (conf:load-module "basic-keybindings")
+(conf:load-module "better-cc-mode")
 (conf:load-module "duplicate-region")
 (conf:load-module "git-gutter-fringe")
 (conf:load-module "highlight-symbol")
