@@ -61,7 +61,7 @@
   (message "Loading project...")
   (setq azkae-project-dir (replace-regexp-in-string "\n$" "" (shell-command-to-string
 							      (format "%s" azkae-get-project-script))))
-  (let ((include-filename (concat azkae-project-dir "/.emacsproject/include_paths")))
+  (let ((include-filename (concat azkae-project-dir "/.emacsproject/includes")))
     (if (file-exists-p include-filename)
 	(let ((new-items (mapcar (lambda (item)
 				   (if (not (string= (substring item 0 1) "/"))
@@ -72,7 +72,7 @@
 	  (setq azkae-include-list (append azkae-include-list new-items))
 	  ))
     )
-  (let ((filename (concat azkae-project-dir "/.emacsproject/cflags")))
+  (let ((filename (concat azkae-project-dir "/.emacsproject/flags")))
     (if (file-exists-p filename)
 	(add-to-list 'azkae-additional-cflags (replace-regexp-in-string "\n$" " "
 									(get-string-from-file filename)))
