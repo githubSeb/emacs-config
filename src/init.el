@@ -23,13 +23,17 @@
   (let ((full-module-name (format "%s/%s/init.el" conf:root-path module-name)))
     (if (file-exists-p full-module-name)
 	(progn
-	  (let ((except-value
-		 (catch 'load-module-exception
-		   (load-file full-module-name)
-		   nil)))
-	    (if except-value
-		(message (format "Unable to load %s module: %s" module-name except-value)))
-	    ))
+	  (condition-case err
+	      (let ((except-value
+		     (catch 'load-module-exception
+		       (load-file full-module-name)
+		       nil)))
+		(if except-value
+		    (message (format "Unable to load %s module: %s" module-name except-value)))
+		t)
+	    (error
+	     (message "/!\\ Error while loading module %s: %s" module-name (error-message-string err))))
+	  )
       (message (format "Module %s not found" module-name)))))
 
 (defun conf:add-to-path(&optional path &optional load-list)
