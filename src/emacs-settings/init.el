@@ -29,9 +29,6 @@
 ;; Setup buffer name to be more clear
 (require 'uniquify)
 
-;; set font
-(set-default-font "Consolas-11")
-
 ;; @TODO: improve, not only for message?
 (defun my-next-buffer ()
     "next-buffer, only skip *Messages*"
