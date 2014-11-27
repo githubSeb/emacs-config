@@ -6,6 +6,7 @@ constexpr
 decltype
 noexcept
 nullptr
+static
 static_assert
 thread_local
 override
