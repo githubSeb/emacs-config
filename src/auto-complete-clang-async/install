@@ -1,5 +1,17 @@
 #!/bin/bash
 
+function confirm() {
+    read -r -p "$1? [y/N] " response
+    case $response in
+	[yY][eE][sS]|[yY])
+            return 0
+            ;;
+	*)
+            return 1
+            ;;
+    esac
+}
+
 cd auto-complete-clang-async
 make clean
 make
@@ -7,8 +19,47 @@ make
 if [ -$? -ne 0 ]
 then
     echo
-    echo "Fatal: clang-complete compilation failed. You probably need to install libclang."
+    echo "Fatal: clang-complete compilation failed. You probably need to install libclang and llvm."
     exit 1
+fi
+
+ldd=$(ldd clang-complete | grep "not found")
+
+if [ "$ldd" != "" ]
+then
+    missing_lib=$(echo "$ldd" | cut -d$'\t' -f2 | cut -d' ' -f1)
+    echo "Status:"
+    echo "$ldd"
+    echo "Fatal: Theses libraries are missing from your library path.."
+    for lib in $missing_lib
+    do
+	if [ -e "/usr/lib/$lib" ]
+	then
+	    echo "Library $lib found in /usr/bin/. Please verify that the library is valid."
+	    continue
+	fi
+
+	path=$(find /lib/ /usr/lib -name "$lib" | tail -n 1)
+	if [ "$path" == "" ]
+	then
+	    path=$(locate "$lib" | tail -n 1)
+	    if [ "$path" == "" ]
+	    then
+		echo "$lib not found. Please fix manually. (ldd $(pwd)/clang-complete)"
+		echo
+		continue
+	    fi
+	fi
+	echo "Library $lib found in $path"
+	if confirm "Running: sudo ln -s $path /usr/lib/$lib"
+	then
+	    sudo ln -s "$path" "/usr/lib/$lib"
+	    echo "Done."
+	else
+	    echo "Please fix manually. (ldd $(pwd)/clang-complete)"
+	fi
+	echo
+    done
 fi
 
 cd - > /dev/null
