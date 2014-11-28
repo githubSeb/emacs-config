@@ -45,6 +45,7 @@
 (defun ac-cc-mode-setup ()
   (project-setup)
   (global-set-key (kbd "M-SPC") 'ac-complete-clang-async)
+  (global-set-key (kbd "M-o") 'ac-complete-clang-async)
   (define-key ac-mode-map (kbd "M-:") 'ac-clang-jump-smart)
   (define-key ac-mode-map (kbd "M-!") 'ac-clang-jump-back)
   (define-key ac-mode-map (kbd "M-/") 'ac-clang-jump-definition)
