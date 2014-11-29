@@ -31,43 +31,46 @@ function add() {
 	print_usage
 	exit 1
     fi
+    module_name=$1
+    remote_name=$2
+    remote_addr=$3
     remote_branch_name="master"
     if [ $# -gt 3 ]
     then
 	remote_branch_name="$4"
     fi
 
-    if git remote | grep "^$2$" > /dev/null
+    if git remote | grep "^$remote_name$" > /dev/null
     then
-	echo "Remote '$2' already exists"
+	echo "Remote '$remote_name' already exists"
 	exit 2	
     fi
     
-    if [ ! -e "$root/$1" ]
+    if [ ! -e "$root/$module_name" ]
     then
-	echo "Module '$1' doesn't exist"
+	echo "Module '$module_name' doesn't exist"
 	exit 2
     fi
 
-    if [ -e "$root/$1/$2" ]
+    if [ -e "$root/$module_name/$remote_name" ]
     then
-	if [ ! "$(ls -A "$root/$1/$2")" ]
+	if [ ! "$(ls -A "$root/$module_name/$remote_name")" ]
 	then
-	    rm -df "$root/$1/$2"
-	    git add "$root/$1/$2" --all
-	    git commit -m "remote-module: Removed '$root/$1/$2'"
+	    rm -df "$root/$module_name/$remote_name"
+	    git add "$root/$module_name/$remote_name" --all
+	    git commit -m "remote-module: Removed '$root/$module_name/$remote_name'"
 	else
-	    echo "Remote '$2' of module '$1' already exists"
+	    echo "Remote '$remote_name' of module '$module_name' already exists"
 	    exit 2
 	fi
     fi
 	
-    trap 'cleanup_remote $2' ERR
-    git remote add -f "$2" "$3"
-    git subtree add "--prefix=$root/$1/$2/" "$2" "$remote_branch_name" --squash
-    echo "$2;$3;$remote_branch_name" >> "$root/$1/remotes"
-    git add "$root/$1/remotes"
-    git commit -m "remote-module: Add '$2' remote to module '$1'"
+    trap 'cleanup_remote $remote_name' ERR
+    git remote add -f "$remote_name" "$remote_addr"
+    git subtree add "--prefix=$root/$module_name/$remote_name/" "$remote_name" "$remote_branch_name" --squash
+    echo "$remote_name;$remote_addr;$remote_branch_name" >> "$root/$module_name/remotes"
+    git add "$root/$module_name/remotes"
+    git commit -m "remote-module: Add '$remote_name' remote to module '$module_name'"
 }
 
 function update() {
