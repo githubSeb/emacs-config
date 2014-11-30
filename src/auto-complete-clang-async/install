@@ -31,6 +31,7 @@ then
 fi
 
 ldd=$(ldd clang-complete | grep "not found")
+valid=1
 
 if [ "$ldd" != "" ]
 then
@@ -43,18 +44,24 @@ then
 	if [ -e "/usr/lib/$lib" ]
 	then
 	    echo "Library $lib found in /usr/bin/. Please verify that the library is valid."
+	    valid=0
 	    continue
 	fi
 
-	path=$(find /lib/ /usr/lib -name "$lib" | tail -n 1)
+	path=$(find "$(llvm-config --libdir)" -name "$lib" | tail -n 1)
 	if [ "$path" == "" ]
 	then
-	    path=$(locate "$lib" | tail -n 1)
+	    path=$(find /lib/ /usr/lib -name "$lib" | tail -n 1)
 	    if [ "$path" == "" ]
 	    then
-		echo "$lib not found. Please fix manually. (ldd $(pwd)/clang-complete)"
-		echo
-		continue
+		path=$(locate "$lib" | tail -n 1)
+		if [ "$path" == "" ]
+		then
+		    echo "$lib not found. Please fix manually. (ldd $(pwd)/clang-complete)"
+		    echo
+		    valid=0
+		    continue
+		fi
 	    fi
 	fi
 	echo "Library $lib found in $path"
@@ -64,9 +71,15 @@ then
 	    echo "Done."
 	else
 	    echo "Please fix manually. (ldd $(pwd)/clang-complete)"
+	    valid=0
 	fi
 	echo
     done
+fi
+
+if [ $valid -ne 1 ]
+then
+    exit 1
 fi
 
 cd - > /dev/null
