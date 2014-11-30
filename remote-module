@@ -125,7 +125,7 @@ function setup() {
 	print_usage
 	exit 1
     fi
-    tmp=$(cat src/*/remotes)
+    tmp=$(cat $(./util/get_modules.sh "remotes") 2> /dev/null)
     if [ "$tmp" == "" ]
     then
 	echo "No remote found"
