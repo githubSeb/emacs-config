@@ -15,7 +15,7 @@ function confirm() {
 hash llvm-config 2> /dev/null
 if [ $? -ne 0 ]
 then
-    echo "You need to install llvm-config to install auto-complete-clang-async."
+    echo "You need to install llvm and libclang-dev to install auto-complete-clang-async."
     exit 1
 fi
 
