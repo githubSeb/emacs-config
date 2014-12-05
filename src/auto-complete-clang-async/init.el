@@ -27,7 +27,7 @@
 ""))
 
 (setq azkae-additional-cflags (split-string
-""))
+"-DCLANG_COMPLETE"))
 
 ;; @TODO
 (setq azkae-get-project-script (concat (file-name-directory load-file-name) "/get_project.sh"))
