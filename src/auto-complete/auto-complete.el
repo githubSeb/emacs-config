@@ -1901,14 +1901,14 @@ This workaround avoid flyspell processes when auto completion is being started."
   )
 
 (defun ac-filename-candidate-current-file ()
-					;  (if (not (equal ac-filename-candidate-current-system-cache nil))
-					;     ac-filename-candidate-current-system-cache
-  (setq azkae-list (ac-filename-candidate-current (file-name-directory (buffer-file-name))))
-  (loop for path in azkae-custom-include-list
+  (if (not (equal ac-filename-cache-current nil))
+      ac-filename-cache-current
+    (setq azkae-list (ac-filename-candidate-current (file-name-directory (buffer-file-name))))
+    (loop for path in azkae-custom-include-list
 	do (setq azkae-list (append azkae-list (ac-filename-candidate-current path)))
 	)
-  ;; (setq ac-filename-candidate-current-system-cache azkae-list)
-  azkae-list)
+    (setq ac-filename-cache-current azkae-list)
+    azkae-list))
 
 ;; Files in current directory source
 (defvar ac-sources-include-files-in-current-dir
@@ -1959,9 +1959,11 @@ This workaround avoid flyspell processes when auto completion is being started."
   ;; (setq ac-filename-candidate-current-system-cache azkae-list)
   azkae-list)
 
+(defvar ac-filename-cache-system nil)
+
 ;; Files in current directory source
 (defvar ac-sources-files-system
-  '((init . (setq ac-filename-cache-current nil))
+  '((init . (setq ac-filename-cache-system nil))
     (candidates . ac-filename-candidate-current-system-call)
     (prefix . "#\\( *\\|	*\\)include\\( *\\|	*\\)<\\(.*\\)")
     (requires . 0)
@@ -2022,9 +2024,11 @@ This workaround avoid flyspell processes when auto completion is being started."
     )
   )
 
+(defvar ac-filename-cache-makefile nil)
+
 ;; Files in current directory source
 (defvar ac-source-makefile-current-dir
-  '((init . (setq ac-filename-cache-current nil))
+  '((init . (setq ac-filename-cache-makefile nil))
     (candidates . ac-makefile-filename-candidate-current)
     (requires . 0)
     (action . ac-start)
@@ -2064,9 +2068,10 @@ This workaround avoid flyspell processes when auto completion is being started."
   azkae-makefile-list-rules
   )
 
+(defvar ac-filename-cache-makefilerule nil)
 
 (defvar ac-source-makefile-rules
-  '((init . (setq ac-filename-cache-current nil))
+  '((init . (setq ac-filename-cache-makefilerule nil))
     (candidates . ac-makefile-rules-candidate)
     (requires . 0)
 ))
