@@ -39,6 +39,9 @@
 ;; Remove indent in namespace
 (c-set-offset 'innamespace 0)
 
+;; Add .inl to c++-mode
+(add-to-list 'auto-mode-alist '("\\.inl\\'" . c++-mode))
+
 (defadvice c-lineup-arglist (around my activate)
   "Improve indentation of continued C++11 lambda function opened as argument."
   (setq ad-return-value
