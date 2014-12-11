@@ -82,6 +82,9 @@ then
     exit 1
 fi
 
+echo "Stripping binary.."
+strip -s clang-complete
+
 cd - > /dev/null
 
 tmp=$(echo "" | g++ -v -x c++ -E - 2>&1)
