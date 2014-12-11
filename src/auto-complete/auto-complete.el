@@ -1947,17 +1947,15 @@ This workaround avoid flyspell processes when auto completion is being started."
     )
   )
 
-;; (defvar ac-filename-candidate-current-system-cache nil)
-
 (defun ac-filename-candidate-current-system-call ()
-					;  (if (not (equal ac-filename-candidate-current-system-cache nil))
-					;     ac-filename-candidate-current-system-cache
-  (setq azkae-list ())
-  (loop for path in azkae-include-list
-	do (setq azkae-list (append azkae-list (ac-filename-candidate-current-system path)))
-	)
-  ;; (setq ac-filename-candidate-current-system-cache azkae-list)
-  azkae-list)
+  (if (not (equal ac-filename-cache-system nil))
+      ac-filename-cache-system
+    (setq azkae-list ())
+    (loop for path in azkae-include-list
+	  do (setq azkae-list (append azkae-list (ac-filename-candidate-current-system path)))
+	  )
+    (setq ac-filename-cache-system azkae-list)
+    azkae-list))
 
 (defvar ac-filename-cache-system nil)
 
