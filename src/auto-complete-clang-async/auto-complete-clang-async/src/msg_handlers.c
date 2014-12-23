@@ -159,6 +159,17 @@ void completion_doCompletion(completion_Session *session, FILE *fp)
     fscanf(fp, "row:%d",    &row);    __skip_the_rest(fp);
     fscanf(fp, "column:%d", &column); __skip_the_rest(fp);
 
+    /* retrieve prefix */
+    char   prefix[LINE_MAX];
+    size_t len_prefix;
+    fgets(prefix, LINE_MAX, fp);
+    len_prefix = strlen(prefix);
+    if (len_prefix > 0)
+    {
+	prefix[len_prefix - 1] = '\0'; /* remove newline */
+	--len_prefix;
+    }
+
     /* get a copy of fresh source file */
     completion_readSourcefile(session, fp);
 
@@ -169,7 +180,7 @@ void completion_doCompletion(completion_Session *session, FILE *fp)
 	    /* code completion completed successfully, so we sort and dump these
          * completion candidates back to client */
 	    clang_sortCodeCompletionResults(res->Results, res->NumResults);
-	    completion_printCodeCompletionResults(res, stdout);
+	    completion_printCodeCompletionResults(res, stdout, prefix, len_prefix);
         clang_disposeCodeCompleteResults(res);
     }
 

@@ -591,6 +591,7 @@ set new cflags for ac-clang from shell command output"
     (widen)
     (process-send-string proc "COMPLETION\n")
     (process-send-string proc (ac-clang-create-position-string (- (point) (length ac-prefix))))
+    (process-send-string proc (format "%s\n" ac-prefix))
     (ac-clang-send-source-code proc)))
 
 (defun ac-clang-send-declaration-request (proc)

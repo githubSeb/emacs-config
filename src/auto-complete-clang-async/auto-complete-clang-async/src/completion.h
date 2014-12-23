@@ -44,21 +44,21 @@ typedef struct __completion_Session_struct
 
 
 
-/* Initialize basic information for completion, such as source filename, initial source 
+/* Initialize basic information for completion, such as source filename, initial source
    buffer and command line arguments to pass to clang */
-void 
+void
 __initialize_completionSession(int argc, char *argv[], completion_Session *session);
 
-/* Initialize session object and launch the completion server, preparse the source file and 
+/* Initialize session object and launch the completion server, preparse the source file and
    build the AST for furture code completion requests  */
 void startup_completionSession(int argc, char *argv[], completion_Session *session);
 
 
 /* Print specified completion string to fp. */
-void completion_printCompletionLine(CXCompletionString completion_string, FILE *fp);
+void completion_printCompletionLine(CXCompletionString completion_string, FILE *fp, const char *prefix, size_t len_prefix);
 
 /* Print all completion results to fp */
-void completion_printCodeCompletionResults(CXCodeCompleteResults *res, FILE *fp);
+void completion_printCodeCompletionResults(CXCodeCompleteResults *res, FILE *fp, const char *prefix, size_t len_prefix);
 
 
 /* Simple wrappers for clang parser functions */
