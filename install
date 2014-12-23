@@ -34,7 +34,7 @@ then
     cp src/default-modules.el src/custom-modules.el
 fi
 echo "Compiling emacs config.."
-emacs -batch -l src/compile.el -kill |& tail -n 1
+util/compile.sh
 ./remote-module setup
 
 if [ $? -eq 0 ]
@@ -49,5 +49,4 @@ then
     echo "(let ((config \"$(pwd)/src/init.el\"))"
     echo "  (if (file-exists-p config)"
     echo "      (load-file config)))"
-
 fi
