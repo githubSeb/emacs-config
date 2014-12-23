@@ -28,22 +28,30 @@
 
 ;; Setup buffer name to be more clear
 (require 'uniquify)
+(require 'cl)
+
+(defun skip-buffers (buffer-list func)
+  (loop for dummy in buffer-list do
+	(loop for buffer in buffer-list do
+	      (when (string= buffer (buffer-name))
+		(funcall func)
+	      ))
+  ))
+
+(defvar skip-buffer-list '("*Messages*" "*clang-complete*"))
 
 ;; @TODO: improve, not only for message?
 (defun my-next-buffer ()
-    "next-buffer, only skip *Messages*"
-      (interactive)
-        (next-buffer)
-	  (when (string= "*Messages*" (buffer-name))
-	          (next-buffer)))
-
+  "next-buffer, only skip *Messages*"
+  (interactive)
+  (next-buffer)
+  (skip-buffers skip-buffer-list 'next-buffer))
 
 (defun my-prev-buffer ()
-    "prev-buffer, only skip *Messages*"
-      (interactive)
-        (previous-buffer)
-	  (when (string= "*Messages*" (buffer-name))
-	          (previous-buffer)))
+  "prev-buffer, only skip *Messages*"
+  (interactive)
+  (previous-buffer)
+  (skip-buffers skip-buffer-list 'previous-buffer))
 
 (global-set-key [remap next-buffer] 'my-next-buffer)
 (global-set-key [remap previous-buffer] 'my-prev-buffer)
