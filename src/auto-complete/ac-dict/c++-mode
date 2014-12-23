@@ -12,3 +12,4 @@ static_assert
 thread_local
 override
 final
+throw
