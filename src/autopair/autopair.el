@@ -910,7 +910,7 @@ by this command. Then place point after the first, indented.\n\n"
 			(message "[autopair] error running custom `autopair-handle-action-fns', switching autopair off")
 			(autopair-mode -1))))
       (apply #'autopair-default-handle-action autopair-action))
-    (if (fboundp 'ac-start)
+    (if (and (fboundp 'ac-start) auto-complete-mode)
 	(ac-start)) ;; AZKAE
     (setq autopair-action nil)))
 
