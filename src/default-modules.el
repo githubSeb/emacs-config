@@ -12,7 +12,6 @@
 (conf:load-module "better-cc-mode")
 (conf:load-module "cycle-buffer")
 (conf:load-module "duplicate-region")
-(conf:load-module "git-gutter-fringe")
 (conf:load-module "highlight-symbol")
 (conf:load-module "ido")
 (conf:load-module "multiple-cursors")
