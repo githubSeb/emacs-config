@@ -16,7 +16,7 @@
   (if result
       (progn
 	(message "Updating..")
-	(compile (format "cd %s/..; git fetch; if [ `git rev-list HEAD...origin/master --count` != 0 ]; then; git pull && ./install && echo 'Please restart emacs to apply changes'; else; echo 'Already up to date'; fi; cd -"
+	(compile (format "cd %s/.. && ./util/update.sh && cd - > /dev/null"
 			 conf:root-path)))
     (message "You can run conf:update if you which to update later.")))
 
