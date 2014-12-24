@@ -1,4 +1,7 @@
 ;; Load confing modules
+;; If you which to use your own module loader (not linked with git) please create custom-modules.el:
+;; cp default-modules.el custom-modules.el
+;; custom-modules will then be used instead of this file.
 
 (conf:load-module "emacs-settings")
 
