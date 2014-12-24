@@ -426,8 +426,8 @@ If there is no common part, this will be nil.")
 
 (defvar ac-completing-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\t" 'ac-expand)
-    (define-key map [tab] 'ac-expand)
+    (define-key map "\t" 'ac-complete) ;; Here was ac-expand
+    (define-key map [tab] 'ac-complete) ;; Here was ac-expand 
     (define-key map "\r" 'ac-complete)
     (define-key map [return] 'ac-complete)
     (define-key map (kbd "M-TAB") 'auto-complete)
@@ -997,7 +997,13 @@ You can not use it in source definition like (prefix . `NAME')."
             (if point
                 (setq prefix-def prefix))))
 
-        if (equal prefix prefix-def) do (push source sources)
+	;; Azkae note: For some unknown reason, this is not executed if called later by ac-clang
+	;; Fixed this by forcing ac-clang source to be pushed ONLY if it has candidates to add,
+	;; Otherwise it would result in an infinite loop if no candidates were found by ac-clang.
+        if (or (equal prefix prefix-def)
+	       (and (equal prefix 'ac-clang-prefix)
+		    (not (equal ac-clang-find-candidates nil))))
+	do (push source sources)
 
         finally return
         (and point (list prefix-def point (nreverse sources)))))

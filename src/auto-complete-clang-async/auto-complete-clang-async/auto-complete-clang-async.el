@@ -248,6 +248,8 @@ set new cflags for ac-clang from shell command output"
   "Return non-nil if point is in a literal (a comment or string)."
   (nth 8 (syntax-ppss)))
 
+;; Azkae: Used to find if no completion where found for this prefix (avoid infinite loop)
+(defvar ac-clang-find-candidates nil)
 
 (defvar ac-clang-template-start-point nil)
 (defvar ac-clang-template-candidates (list "ok" "no" "yes:)"))
@@ -676,6 +678,9 @@ set new cflags for ac-clang from shell command output"
 
         (otherwise
          (setq ac-clang-current-candidate (ac-clang-parse-completion-results proc))
+	 (if (equal ac-clang-current-candidate nil)
+	     (setq ac-clang-find-candidates nil)
+	   (setq ac-clang-find-candidates t))
          ;; (message "ac-clang results arrived")
          ; (message "ac-clang results arrived")
          (setq ac-clang-status 'acknowledged)

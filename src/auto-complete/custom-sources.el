@@ -89,7 +89,7 @@
 
 (defvar ac-filename-cache-system nil)
 
-;; Files in current directory source
+;; Files in system directory source
 (defvar ac-sources-files-system
   '((init . (setq ac-filename-cache-system nil))
     (candidates . ac-filename-candidate-current-system-call)
