@@ -7,6 +7,7 @@
 (conf:load-module "autopair")
 (conf:load-module "basic-keybindings")
 (conf:load-module "better-cc-mode")
+(conf:load-module "cycle-buffer")
 (conf:load-module "duplicate-region")
 (conf:load-module "git-gutter-fringe")
 (conf:load-module "highlight-symbol")
@@ -17,3 +18,4 @@
 (conf:load-module "undo-tree")
 (conf:load-module "window")
 (conf:load-module "yasnippet")
+(conf:load-module "updater")

@@ -18,4 +18,4 @@ do
     cmd="$cmd $file"
 done
 
-$cmd
+$cmd 2> /dev/null
