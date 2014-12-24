@@ -22,14 +22,14 @@
 
 (defun updater--write-new-time ()
   (with-temp-file last-update-file
-    (insert (number-to-string (truncate (float-time))))))
+    (insert (car (split-string (number-to-string (float-time)) "\\.")))))
 
 (defun conf:verify-update ()
   (if (not (file-exists-p last-update-file))
       (updater--write-new-time)
     (progn
       (let ((old-time (string-to-number (updater--get-string-from-file last-update-file)))
-	    (current-time (truncate (float-time))))
+	    (current-time (float-time)))
 	(if (> (- current-time old-time) checkout-period)
 	    (progn (call-interactively 'conf:update)
 		   (updater--write-new-time)))
