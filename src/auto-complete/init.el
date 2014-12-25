@@ -23,3 +23,11 @@
 (add-hook 'auto-complete-mode-hook 'ac-common-setup)
 (global-auto-complete-mode t)
 (global-set-key (kbd "M-SPC") 'ac-complete)
+
+(defun c-electric-esperluette ()
+  (interactive)
+  (insert "&"))
+
+(global-set-key "&" 'c-electric-esperluette)
+(add-to-list 'ac-non-trigger-commands 'c-electric-esperluette)
+(add-to-list 'ac-non-trigger-commands 'c-electric-star)
