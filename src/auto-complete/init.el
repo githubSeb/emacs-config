@@ -30,4 +30,12 @@
 
 (global-set-key "&" 'c-electric-esperluette)
 (add-to-list 'ac-non-trigger-commands 'c-electric-esperluette)
+
+(defun c-electric-space ()
+  (interactive)
+  (insert " "))
+
+(global-set-key " " 'c-electric-space)
+(add-to-list 'ac-non-trigger-commands 'c-electric-space)
+
 (add-to-list 'ac-non-trigger-commands 'c-electric-star)
