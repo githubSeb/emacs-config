@@ -431,6 +431,7 @@ If there is no common part, this will be nil.")
     (define-key map "\r" 'ac-complete)
     (define-key map [return] 'ac-complete)
     (define-key map (kbd "M-TAB") 'auto-complete)
+    (define-key map "\C-s" 'ac-isearch)
 
     (define-key map "\M-n" 'ac-next)
     (define-key map "\M-p" 'ac-previous)
