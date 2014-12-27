@@ -1002,8 +1002,7 @@ You can not use it in source definition like (prefix . `NAME')."
 	;; Fixed this by forcing ac-clang source to be pushed ONLY if it has candidates to add,
 	;; Otherwise it would result in an infinite loop if no candidates were found by ac-clang.
         if (or (equal prefix prefix-def)
-	       (and (equal prefix 'ac-clang-prefix)
-		    (not (equal ac-clang-find-candidates nil))))
+	       (equal prefix 'ac-clang-prefix))
 	do (push source sources)
 
         finally return

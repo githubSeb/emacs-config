@@ -248,9 +248,6 @@ set new cflags for ac-clang from shell command output"
   "Return non-nil if point is in a literal (a comment or string)."
   (nth 8 (syntax-ppss)))
 
-;; Azkae: Used to find if no completion where found for this prefix (avoid infinite loop)
-(defvar ac-clang-find-candidates nil)
-
 (defvar ac-clang-template-start-point nil)
 (defvar ac-clang-template-candidates (list "ok" "no" "yes:)"))
 
@@ -678,14 +675,13 @@ set new cflags for ac-clang from shell command output"
 
         (otherwise
          (setq ac-clang-current-candidate (ac-clang-parse-completion-results proc))
-	 (if (equal ac-clang-current-candidate nil)
-	     (setq ac-clang-find-candidates nil)
-	   (setq ac-clang-find-candidates t))
+	 (if (not (equal ac-clang-current-candidate nil))
+	     (progn
+	       (setq ac-clang-status 'acknowledged)
+	       (ac-start :force-init t)
+	       (ac-update)))
          ;; (message "ac-clang results arrived")
          ; (message "ac-clang results arrived")
-         (setq ac-clang-status 'acknowledged)
-         (ac-start :force-init t)
-         (ac-update)
          (setq ac-clang-status 'idle)))))
 
 
@@ -844,11 +840,12 @@ set new cflags for ac-clang from shell command output"
 (defun ac-clang-launch-completion-process-with-file (filename)
   (setq ac-clang-completion-process
         (let ((process-connection-type nil))
-          (apply 'start-process
-                 "clang-complete" "*clang-complete*"
-                 ac-clang-complete-executable
-                 (append (ac-clang-build-complete-args)
-                         (list filename)))))
+	  (let ((process-connection-type nil))  ; Use a pipe.
+	    (apply 'start-process
+		   "clang-complete" "*clang-complete*"
+		   ac-clang-complete-executable
+		   (append (ac-clang-build-complete-args)
+			   (list filename))))))
 
   (set-process-filter ac-clang-completion-process 'ac-clang-filter-output)
   (set-process-query-on-exit-flag ac-clang-completion-process nil)
