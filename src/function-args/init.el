@@ -5,4 +5,6 @@
 
 (require 'function-args)
 (fa-config-default)
+(setq moo-do-includes nil)
+
 (global-set-key (kbd "M-m") 'moo-jump-local)
