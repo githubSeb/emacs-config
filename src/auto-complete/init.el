@@ -39,3 +39,4 @@
 (add-to-list 'ac-non-trigger-commands 'c-electric-space)
 
 (add-to-list 'ac-non-trigger-commands 'c-electric-star)
+(add-to-list 'ac-non-trigger-commands 'c-electric-semi&comma)
