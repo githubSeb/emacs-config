@@ -1,11 +1,8 @@
 ;; Some simple emacs settings
 
 ;; Set default window size in gui mode - customized for i3
-(setq default-frame-alist
-      '(
-        (width . 93) ; character
-        (height . 42) ; lines
-        ))
+(add-to-list 'default-frame-alist '(width . 93)) ; character
+(add-to-list 'default-frame-alist '(height . 42)) ; lines
 
 ;; Change time display
 (setq display-time-day-and-date t

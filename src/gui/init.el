@@ -1,7 +1,7 @@
 ;; Setup emacs in gui mode
 
-(if (not (display-graphic-p))
-    (throw 'load-module-exception "Emacs not in gui mode"))
+;; (if (not (display-graphic-p))
+;;     (throw 'load-module-exception "Emacs not in gui mode"))
 
 ;; Remove all the crap
 (menu-bar-mode -1)
