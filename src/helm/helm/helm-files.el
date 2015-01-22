@@ -313,7 +313,7 @@ I.e use the -path/ipath arguments of find instead of -name/iname."
     (define-key map (kbd "M-=")           'helm-ff-run-ediff-merge-file)
     (define-key map (kbd "M-p")           'helm-ff-run-switch-to-history)
     (define-key map (kbd "C-c h")         'helm-ff-file-name-history)
-    (define-key map (kbd "M-i")           'helm-ff-properties-persistent)
+    ;; (define-key map (kbd "M-i")           'helm-ff-properties-persistent)
     (define-key map (kbd "C-c ?")         'helm-ff-help)
     (define-key map (kbd "C-}")           'helm-narrow-window)
     (define-key map (kbd "C-{")           'helm-enlarge-window)

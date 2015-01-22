@@ -174,13 +174,14 @@
   (fa-update-arg))
 
 (let ((map function-args-mode-map))
-  (define-key map (kbd "M-o") 'moo-complete)
-  (define-key map (kbd "M-i") 'fa-show)
-  (define-key map (kbd "M-n") 'fa-idx-cycle-down)
-  (define-key map (kbd "M-h") 'fa-idx-cycle-up)
-  (define-key map (kbd "M-u") 'fa-abort)
-  (define-key map (kbd "M-j") 'fa-jump-maybe)
-  (define-key map (kbd "C-M-j") 'moo-jump-local))
+  ;; (define-key map (kbd "M-o") 'moo-complete)
+  ;; (define-key map (kbd "M-i") 'fa-show)
+  ;; (define-key map (kbd "M-n") 'fa-idx-cycle-down)
+  ;; (define-key map (kbd "M-h") 'fa-idx-cycle-up)
+  ;; (define-key map (kbd "M-u") 'fa-abort)
+  ;; (define-key map (kbd "M-j") 'fa-jump-maybe)
+  ;; (define-key map (kbd "C-M-j") 'moo-jump-local)
+  )
 
 (defvar fa-overlay nil
   "Hint overlay instance.")
